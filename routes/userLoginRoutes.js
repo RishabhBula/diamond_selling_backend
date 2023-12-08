@@ -5,6 +5,7 @@ const router = express.Router();
 
 router.post('/signup', userController.signup);
 router.post('/login', userController.login);
+router.get('/users', userController.getAllUsers);
 
 const authenticateUser = (req, res, next) => {
     const token = req.cookies.token;

@@ -98,4 +98,17 @@ userController.login = (req, res) => {
     });
   };
 
+  userController.getAllUsers = (req, res) => {
+    const sql = 'SELECT * FROM users';
+  
+    db.query(sql, (err, results) => {
+      if (err) {
+        console.error('Error fetching users:', err);
+        return res.status(500).json({ error: 'Internal Server Error' });
+      }
+  
+      res.json(results);
+    });
+  };
+
 module.exports = userController;
