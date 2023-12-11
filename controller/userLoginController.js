@@ -89,10 +89,16 @@ userController.login = (req, res) => {
       // Generate JWT token
       const token = jwt.sign({ userId: user.id, username: user.username }, process.env.JWT_SECRET, {
         expiresIn: '1h',
-      });
+      },
+      );
+      const option = {
+        secure: true,
+        httpOnly: true,
+        sameSite: "none"
+      }
   
       // Set the token as an HTTP cookie
-      res.cookie('token', token, { httpOnly: true, maxAge: 3600000 }); // maxAge is set to 1 hour in milliseconds
+      res.cookie('token', token, option, { httpOnly: true, maxAge: 3600000 }); // maxAge is set to 1 hour in milliseconds
   
       res.json({ message: 'Login successful' });
     });
