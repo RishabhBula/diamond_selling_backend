@@ -144,4 +144,104 @@ userController.googleSignIn = passport.authenticate("google", {
   (req, res) => {
     res.redirect("/profile");
   };
+
+// Admin Signup
+userController.adminSignup = (req, res) => {
+  const { username, password } = req.body;
+
+  // Perform validation and error handling as needed
+
+  // Hash the password
+  bcrypt.hash(password, 10, (err, hash) => {
+    if (err) {
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+
+    // Insert admin into the database
+    const sql = "INSERT INTO admins (username, password) VALUES (?, ?)";
+    db.query(sql, [username, hash], (err, result) => {
+      if (err) {
+        return res.status(500).json({ error: "Internal Server Error" });
+      }
+
+      res.json({ message: "Admin signup successful" });
+    });
+  });
+};
+
+// Admin Login
+// userController.adminLogin = (req, res) => {
+//   const { username, password } = req.body;
+
+//   // Retrieve admin from the database
+//   const sql = "SELECT * FROM admins WHERE username = ?";
+//   db.query(sql, [username], async (err, results) => {
+//     if (err) {
+//       return res.status(500).json({ error: "Internal Server Error" });
+//     }
+
+//     if (results.length === 0) {
+//       return res.status(401).json({ error: "Invalid username or password" });
+//     }
+
+//     const admin = results[0];
+
+//     // Compare the provided password with the hashed password
+//     const isPasswordValid = await bcrypt.compare(password, admin.password);
+
+//     if (!isPasswordValid) {
+//       return res.status(401).json({ error: "Invalid username or password" });
+//     }
+
+//     // Generate JWT token
+//     const token = jwt.sign(
+//       { adminId: admin.id, username: admin.username },
+//       "your_secret_key",
+//       {
+//         expiresIn: "1h",
+//       }
+//     );
+
+//     res.json({ token });
+//   });
+// };
+
+
+userController.adminLogin = (req, res) => {
+  const { username, password } = req.body;
+
+  // Retrieve admin from the database
+  const sql = 'SELECT * FROM admins WHERE username = ?';
+  db.query(sql, [username], async (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+
+    if (results.length === 0) {
+      return res.status(401).json({ error: 'Invalid username or password' });
+    }
+
+    const admin = results[0];
+
+    // Compare the provided password with the hashed password
+    const isPasswordValid = await bcrypt.compare(password, admin.password);
+
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: 'Invalid username or password' });
+    }
+
+    // Generate JWT token
+    const token = jwt.sign({ adminId: admin.id, username: admin.username }, 'your_secret_key', {
+      expiresIn: '1h',
+    });
+
+    // Set the token as an HTTP cookie
+    res.cookie('adminToken', token, { httpOnly: true, maxAge: 3600000 }); // maxAge is set to 1 hour in milliseconds
+
+    // Send a success message
+    res.json({ message: 'Admin login successful' });
+  });
+};
+
 module.exports = userController;
+  

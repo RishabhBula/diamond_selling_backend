@@ -38,4 +38,8 @@ router.get("/auth/google/callback", userController.googleSignInCallback);
 router.get("/auth/google/signup", userController.googleSignUp);
 router.get("/auth/google/signup/callback", userController.googleSignUpCallback);
 
+// Admin Signup and Login routes
+router.post('/admin/signup', userController.adminSignup);
+router.post('/admin/login', userController.adminLogin);
+
 module.exports = router;
