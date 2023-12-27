@@ -33,6 +33,7 @@ userController.signup = async (req, res) => {
   }
 };
 
+
 // userController.login = (req, res) => {
 //   const { username, password } = req.body;
 
@@ -243,5 +244,92 @@ userController.adminLogin = (req, res) => {
   });
 };
 
+
+// ///////////////////////////////////////////////////////
+
+// Signup
+userController.Signup = async (req, res) => {
+  const { userType, companyName, firstName, lastName, email, phoneNumber, password, confirmPassword } = req.body;
+  console.log(userType, companyName, firstName, lastName, email, phoneNumber, password, confirmPassword)
+  if (!password || typeof password !== 'string') {
+    
+    return res.status(400).json({ error: 'Invalid password' });
+  }
+  // Check if passwords match
+  if (password !== confirmPassword) {
+    console.log("not matched")
+    return res.status(400).json({ error: 'Passwords do not match' });
+  }
+
+  try {
+    // Hash the password
+    console.log('Before hashing - password:', password);
+    const hashedpwd = await bcrypt.hash(password, 10);
+    console.log('After hashing - hash:', hashedpwd);
+
+    // Insert customer into the database
+    const sql = 'INSERT INTO user (userType, companyName, firstName, lastName, email, phoneNumber, password) VALUES (?, ?, ?, ?, ?, ?, ?)';
+    db.query(sql, [userType, companyName, firstName, lastName, email, phoneNumber, hashedpwd], (err, result) => {
+      if (err) {
+        console.error('Database error:', err);
+        return res.status(500).json({ error: 'Internal Server Error' });
+      }
+
+      res.json({ message: 'signup successful' });
+    });
+  } catch (error) {
+    console.error('Hashing error:', error);
+    return res.status(500).json({ error: 'Internal Server Error (hash)' });
+  }
+};
+
+// Login
+userController.Login = async (req, res) => {
+  const { email, password } = req.body;
+
+  console.log(email,password)
+  // Perform validation
+  if (!email || typeof email !== 'string') {
+    return res.status(400).json({ error: 'Invalid email' });
+  }
+
+  if (!password || typeof password !== 'string') {
+    return res.status(400).json({ error: 'Invalid password' });
+  }
+
+  try {
+    // Retrieve customer from the database
+    const sql = 'SELECT * FROM user WHERE email = ?';
+    db.query(sql, [email], async (err, results) => {
+      if (err) {
+        return res.status(500).json({ error: 'Internal Server Error' });
+      }
+
+      if (results.length === 0) {
+        return res.status(401).json({ error: 'Invalid email or password' });
+      }
+
+      const customer = results[0];
+
+      // Compare the provided password with the hashed password
+      const isPasswordValid = await bcrypt.compare(password, customer.password);
+
+      if (!isPasswordValid) {
+        return res.status(401).json({ error: 'Invalid email or password' });
+      }
+
+      // Generate JWT token
+      const token = jwt.sign({ userId: customer.id, email: customer.email }, 'your_secret_key', {
+        expiresIn: '1h',
+      });
+       // Set the token as a cookie
+       res.cookie('jwtToken', token, { httpOnly: true });
+      res.json({ message: 'login successful' });
+    });
+  } catch (error) {
+    console.error('Login error:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
 module.exports = userController;
-  

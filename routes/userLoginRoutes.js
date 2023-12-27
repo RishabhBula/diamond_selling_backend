@@ -3,9 +3,10 @@ const userController = require("../controller/userLoginController");
 
 const router = express.Router();
 
-router.post("/signup", userController.signup);
-router.post("/login", userController.login);
+router.post("/auth/signup", userController.signup);
+router.post("/auth/login", userController.login);
 router.get("/users", userController.getAllUsers);
+
 
 const authenticateUser = (req, res, next) => {
   const token = req.cookies.token;
@@ -41,5 +42,8 @@ router.get("/auth/google/signup/callback", userController.googleSignUpCallback);
 // Admin Signup and Login routes
 router.post('/admin/signup', userController.adminSignup);
 router.post('/admin/login', userController.adminLogin);
+
+router.post('/signup', userController.Signup);
+router.post('/login', userController.Login);
 
 module.exports = router;
